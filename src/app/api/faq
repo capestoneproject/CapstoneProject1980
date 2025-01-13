@@ -1,0 +1,34 @@
+import { NextResponse } from "next/server";
+import { getLocations } from "@/lib/locations-store";
+import { generateFAQs } from "@/lib/gemini";
+
+export async function GET() {
+  try {
+    // Get all locations
+    const locations = await getLocations();
+
+    // Create a context from locations
+    const context = locations
+      .map(
+        (location) => `
+      Location: ${location.name}
+      Type: ${location.type}
+      Address: ${location.address}
+      Description: ${location.description}
+      Services: ${location.services.join(", ")}
+    `
+      )
+      .join("\n\n");
+
+    // Generate FAQs using Gemini
+    const faqs = await generateFAQs(context);
+
+    return NextResponse.json(faqs);
+  } catch (error) {
+    console.error("Error generating FAQs:", error);
+    return NextResponse.json(
+      { error: "Failed to generate FAQs" },
+      { status: 500 }
+    );
+  }
+}
