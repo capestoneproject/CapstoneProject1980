@@ -1,0 +1,26 @@
+import { NextResponse } from "next/server";
+import { io } from "socket.io-client";
+
+export async function POST() {
+  try {
+    // Generate a unique room ID
+    const roomId = `support-${Math.random().toString(36).substring(7)}`;
+
+    // Connect to WebSocket server to notify admins
+    const socket = io("http://localhost:3001", {
+      path: "/socket.io",
+    });
+
+    // Emit new support request event
+    socket.emit("newSupportRequest", roomId);
+    socket.disconnect();
+
+    return NextResponse.json({ roomId });
+  } catch (error) {
+    console.error("Error creating room:", error);
+    return NextResponse.json(
+      { error: "Failed to create support room" },
+      { status: 500 }
+    );
+  }
+}
