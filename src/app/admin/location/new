@@ -1,0 +1,30 @@
+"use client";
+
+import LocationForm from "@/components/location-form";
+import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
+
+export default function NewLocationPage() {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  if (!isAuthenticated) {
+    router.push("/admin");
+    return null;
+  }
+
+  return (
+    <main className="container max-w-4xl mx-auto p-4 py-8">
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Add New Location</h1>
+          <p className="text-muted-foreground">
+            Add information about a new location and its services.
+          </p>
+        </div>
+
+        <LocationForm />
+      </div>
+    </main>
+  );
+}
