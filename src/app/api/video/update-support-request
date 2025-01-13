@@ -1,0 +1,31 @@
+import { NextResponse } from "next/server";
+import { promises as fs } from "fs";
+import path from "path";
+
+const dataFilePath = path.join(process.cwd(), "src/data/support-requests.json");
+
+export async function POST(req: Request) {
+  try {
+    const { id, status } = await req.json();
+
+    // Read existing support requests
+    const data = await fs.readFile(dataFilePath, "utf8");
+    const supportRequests = JSON.parse(data);
+
+    // Find and update the request
+    const updatedRequests = supportRequests.map((request: any) =>
+      request.id === id ? { ...request, status } : request
+    );
+
+    // Save updated support requests
+    await fs.writeFile(dataFilePath, JSON.stringify(updatedRequests, null, 2));
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error updating support request:", error);
+    return NextResponse.json(
+      { error: "Failed to update support request" },
+      { status: 500 }
+    );
+  }
+}
