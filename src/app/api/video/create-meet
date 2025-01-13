@@ -1,0 +1,38 @@
+import { NextResponse } from "next/server";
+
+function generateMeetCode() {
+  // Google Meet codes are typically 3 groups of 4 lowercase letters/numbers
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const generateGroup = () => {
+    let group = "";
+    for (let i = 0; i < 3; i++) {
+      group += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return group;
+  };
+
+  // Format: xxx-xxxx-xxx
+  return `${generateGroup()}-${generateGroup()}-${generateGroup()}`;
+}
+
+export async function POST() {
+  try {
+    // Generate a valid Meet code
+    const meetCode = generateMeetCode();
+
+    // Create a Google Meet link
+    // Format: https://meet.google.com/xxx-xxxx-xxx
+    const meetLink = `https://meet.google.com/${meetCode}`;
+
+    return NextResponse.json({
+      meetLink,
+      meetCode,
+    });
+  } catch (error) {
+    console.error("Error creating meet link:", error);
+    return NextResponse.json(
+      { error: "Failed to create meet link" },
+      { status: 500 }
+    );
+  }
+}
