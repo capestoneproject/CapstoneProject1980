@@ -1,0 +1,117 @@
+import { NextResponse } from "next/server";
+import { promises as fs } from "fs";
+import path from "path";
+import { LocationInfo } from "@/lib/types";
+
+const dataFilePath = path.join(process.cwd(), "src/data/locations.json");
+
+async function getLocationsFromFile(): Promise<LocationInfo[]> {
+  try {
+    const data = await fs.readFile(dataFilePath, "utf8");
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("Error reading locations:", error);
+    return [];
+  }
+}
+
+async function saveLocationsToFile(locations: LocationInfo[]) {
+  try {
+    await fs.writeFile(
+      dataFilePath,
+      JSON.stringify(locations, null, 2),
+      "utf8"
+    );
+  } catch (error) {
+    console.error("Error writing locations:", error);
+    throw new Error("Failed to save locations");
+  }
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const locations = await getLocationsFromFile();
+    const location = locations.find((l) => l.id === params.id);
+
+    if (!location) {
+      return NextResponse.json(
+        { error: "Location not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(location);
+  } catch (error) {
+    console.error("Error in GET /api/locations/[id]:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch location" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const locations = await getLocationsFromFile();
+    const locationIndex = locations.findIndex((l) => l.id === params.id);
+
+    if (locationIndex === -1) {
+      return NextResponse.json(
+        { error: "Location not found" },
+        { status: 404 }
+      );
+    }
+
+    locations.splice(locationIndex, 1);
+    await saveLocationsToFile(locations);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error in DELETE /api/locations/[id]:", error);
+    return NextResponse.json(
+      { error: "Failed to delete location" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const body = await request.json();
+    const locations = await getLocationsFromFile();
+    const locationIndex = locations.findIndex((l) => l.id === params.id);
+
+    if (locationIndex === -1) {
+      return NextResponse.json(
+        { error: "Location not found" },
+        { status: 404 }
+      );
+    }
+
+    const updatedLocation = {
+      ...locations[locationIndex],
+      ...body,
+      id: params.id, // Ensure ID doesn't change
+    };
+
+    locations[locationIndex] = updatedLocation;
+    await saveLocationsToFile(locations);
+
+    return NextResponse.json(updatedLocation);
+  } catch (error) {
+    console.error("Error in PUT /api/locations/[id]:", error);
+    return NextResponse.json(
+      { error: "Failed to update location" },
+      { status: 500 }
+    );
+  }
+}
