@@ -1,0 +1,244 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import { LocationInfo } from "@/lib/types";
+import { getLocations } from "@/lib/locations-store";
+import { Building2, Edit, Loader2, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+
+export default function LocationsPage() {
+  const [locations, setLocations] = useState<LocationInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [locationToDelete, setLocationToDelete] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/admin");
+      return;
+    }
+    loadLocations();
+  }, [isAuthenticated, router]);
+
+  const loadLocations = async () => {
+    try {
+      const allLocations = await getLocations();
+      console.log("Loaded locations:", allLocations);
+      setLocations(allLocations);
+    } catch (error) {
+      console.error("Error loading locations:", error);
+      toast.error("Failed to load locations");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/locations/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete location");
+      }
+
+      await loadLocations();
+      toast.success("Location deleted successfully");
+    } catch (error) {
+      console.error("Error deleting location:", error);
+      toast.error("Failed to delete location");
+    }
+    setLocationToDelete(null);
+  };
+
+  const createSampleLocation = async () => {
+    try {
+      const sampleLocation = {
+        type: "RAILWAY_STATION",
+        name: "Central Railway Station",
+        address: "123 Railway Road, City Center",
+        operatingHours: "24/7",
+        contactNumbers: ["+91 1234567890", "+91 9876543210"],
+        description: "Main railway station serving intercity and local trains.",
+        services: [
+          {
+            name: "Ticket Booking",
+            description: "Book tickets for any destination",
+            requirements: ["Valid ID proof", "Payment method"],
+            estimatedTime: "5-10 minutes",
+            cost: "Varies by destination",
+          },
+          {
+            name: "Luggage Storage",
+            description: "Safe storage for your luggage",
+            requirements: ["Luggage receipt", "ID proof"],
+            estimatedTime: "2-5 minutes",
+            cost: "₹50 per hour",
+          },
+        ],
+        facilities: [
+          "Waiting Room",
+          "Food Court",
+          "ATM",
+          "First Aid",
+          "Wheelchair Access",
+        ],
+        importantNotes:
+          "Please arrive 30 minutes before departure. Keep your ID proof handy.",
+      };
+
+      console.log("Creating sample location:", sampleLocation);
+      const response = await fetch("/api/locations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sampleLocation),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create sample location");
+      }
+
+      const newLocation = await response.json();
+      console.log("Created location:", newLocation);
+
+      await loadLocations();
+      toast.success("Sample location created successfully");
+    } catch (error) {
+      console.error("Error creating sample location:", error);
+      toast.error("Failed to create sample location");
+    }
+  };
+
+  const getLocationIcon = (type: LocationInfo["type"]) => {
+    return <Building2 className="h-5 w-5" />;
+  };
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <main className="container max-w-4xl mx-auto p-4 py-8">
+      <div className="flex flex-col gap-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Manage Locations</h1>
+            <p className="text-muted-foreground">
+              View and edit existing locations and their details.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={createSampleLocation} variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Sample Location
+            </Button>
+            <Link href="/admin/location/new">
+              <Button>Add New Location</Button>
+            </Link>
+          </div>
+        </div>
+
+        {loading ? (
+          <Card className="p-6">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2">Loading locations...</span>
+            </div>
+          </Card>
+        ) : locations.length === 0 ? (
+          <Card className="p-6">
+            <p className="text-center text-muted-foreground">
+              No locations added yet.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {locations.map((location) => (
+              <Card key={location.id} className="p-6">
+                <div className="flex items-start gap-4">
+                  {getLocationIcon(location.type)}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h2 className="text-xl font-semibold">
+                          {location.name}
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                          {location.type.replace(/_/g, " ")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/admin/location/${location.id}`}>
+                          <Button variant="ghost" size="icon">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setLocationToDelete(location.id)}
+                          className="text-destructive hover:text-destructive/90"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground">{location.address}</p>
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      <p>Operating Hours: {location.operatingHours}</p>
+                      <p>Services: {location.services.length}</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <AlertDialog
+        open={!!locationToDelete}
+        onOpenChange={() => setLocationToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this location and all its associated
+              data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => locationToDelete && handleDelete(locationToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </main>
+  );
+}
