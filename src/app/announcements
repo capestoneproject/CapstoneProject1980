@@ -1,0 +1,130 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Announcement } from "@/lib/types";
+import { getAnnouncements } from "@/lib/announcements-store";
+import { AlertCircle, AlertTriangle, Info, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export default function AnnouncementsPage() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadAndSortAnnouncements = async () => {
+    try {
+      const allAnnouncements = await getAnnouncements();
+      console.log("Fetched announcements:", allAnnouncements);
+
+      // Sort by date (newest first) and priority (high to low)
+      const sorted = allAnnouncements.sort((a, b) => {
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        const priorityDiff =
+          priorityOrder[b.priority] - priorityOrder[a.priority];
+        if (priorityDiff !== 0) return priorityDiff;
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+      console.log("Sorted announcements:", sorted);
+      setAnnouncements(sorted);
+    } catch (error) {
+      console.error("Error loading announcements:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Initial load
+    console.log("Initial load of announcements");
+    loadAndSortAnnouncements();
+
+    // Set up refresh interval
+    const interval = setInterval(() => {
+      console.log("Refreshing announcements");
+      loadAndSortAnnouncements();
+    }, 5000); // Refresh every 5 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
+  }, []);
+
+  const getPriorityIcon = (priority: Announcement["priority"]) => {
+    switch (priority) {
+      case "high":
+        return <AlertCircle className="h-5 w-5 text-destructive" />;
+      case "medium":
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+      case "low":
+        return <Info className="h-5 w-5 text-blue-500" />;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  return (
+    <main className="container max-w-4xl mx-auto p-4 py-8">
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Announcements</h1>
+          <p className="text-muted-foreground">
+            Stay updated with important announcements and news.
+          </p>
+        </div>
+
+        {loading ? (
+          <Card className="p-6">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2">Loading announcements...</span>
+            </div>
+          </Card>
+        ) : announcements.length === 0 ? (
+          <Card className="p-6">
+            <p className="text-center text-muted-foreground">
+              No announcements at this time.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {announcements.map((announcement) => (
+              <Card
+                key={announcement.id}
+                className={cn("p-6", {
+                  "border-destructive": announcement.priority === "high",
+                  "border-yellow-500": announcement.priority === "medium",
+                  "border-blue-500": announcement.priority === "low",
+                })}
+              >
+                <div className="flex items-start gap-4">
+                  {getPriorityIcon(announcement.priority)}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <h2 className="text-xl font-semibold">
+                        {announcement.title}
+                      </h2>
+                      <span className="text-sm text-muted-foreground">
+                        {formatDate(announcement.date)}
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground whitespace-pre-wrap">
+                      {announcement.content}
+                    </p>
+                    <div className="text-sm text-muted-foreground mt-2">
+                      <span>Priority: {announcement.priority}</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
