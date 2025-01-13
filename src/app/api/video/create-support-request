@@ -1,0 +1,73 @@
+import { NextResponse } from "next/server";
+import { promises as fs } from "fs";
+import path from "path";
+
+// Store support requests in a JSON file
+const dataFilePath = path.join(process.cwd(), "src/data/support-requests.json");
+
+// Ensure the data directory exists
+async function ensureDataDirectory() {
+  const dataDir = path.dirname(dataFilePath);
+  try {
+    await fs.access(dataDir);
+  } catch {
+    await fs.mkdir(dataDir, { recursive: true });
+  }
+}
+
+// Initialize empty support requests file if it doesn't exist
+async function initializeSupportRequests() {
+  try {
+    await fs.access(dataFilePath);
+  } catch {
+    await fs.writeFile(dataFilePath, JSON.stringify([]));
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const { roomId } = await req.json();
+
+    await ensureDataDirectory();
+    await initializeSupportRequests();
+
+    const data = await fs.readFile(dataFilePath, "utf8");
+    const supportRequests = JSON.parse(data);
+
+    const newRequest = {
+      id: Math.random().toString(36).substring(7),
+      roomId,
+      createdAt: new Date().toISOString(),
+      status: "pending",
+    };
+
+    supportRequests.push(newRequest);
+    await fs.writeFile(dataFilePath, JSON.stringify(supportRequests, null, 2));
+
+    return NextResponse.json(newRequest);
+  } catch (error) {
+    console.error("Error creating support request:", error);
+    return NextResponse.json(
+      { error: "Failed to create support request" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    await ensureDataDirectory();
+    await initializeSupportRequests();
+
+    const data = await fs.readFile(dataFilePath, "utf8");
+    const supportRequests = JSON.parse(data);
+
+    return NextResponse.json(supportRequests);
+  } catch (error) {
+    console.error("Error reading support requests:", error);
+    return NextResponse.json(
+      { error: "Failed to read support requests" },
+      { status: 500 }
+    );
+  }
+}
