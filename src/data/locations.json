@@ -1,0 +1,125 @@
+[
+  {
+    "type": "HOSPITAL",
+    "name": "cubbon road",
+    "address": "cubbon road bangalore\nkarnataka\n",
+    "operatingHours": "emergency ward open 24 hours all days of the week, opd is 8am-2pm all days except sunday",
+    "contactNumbers": [
+      "98472398439",
+      "42343243243"
+    ],
+    "description": "this is a governemnt hospital where people can get treatment for free.\nit also has a pharmacy in it. bed capacity 300.",
+    "services": [
+      {
+        "name": "opd",
+        "description": "out patient department",
+        "requirements": [
+          "none"
+        ],
+        "estimatedTime": "1 hour",
+        "cost": "20 "
+      },
+      {
+        "name": "emergency",
+        "description": "provides immediate treatment to critical patients",
+        "requirements": [
+          "critical condition"
+        ],
+        "estimatedTime": "1 min",
+        "cost": "10"
+      }
+    ],
+    "facilities": [
+      "toilet",
+      "garden",
+      "cafeteria",
+      "hotel"
+    ],
+    "importantNotes": "the toilets are not allowed to be used by people other than patients and their family\nno shouting",
+    "id": "d390c441-ce54-432d-879c-d3c3d25419e7"
+  },
+  {
+    "type": "RAILWAY_STATION",
+    "name": "Central Railway Station",
+    "address": "123 Railway Road, City Center",
+    "operatingHours": "24/7",
+    "contactNumbers": [
+      "+91 1234567890",
+      "+91 9876543210"
+    ],
+    "description": "Main railway station serving intercity and local trains.",
+    "services": [
+      {
+        "name": "Ticket Booking",
+        "description": "Book tickets for any destination",
+        "requirements": [
+          "Valid ID proof",
+          "Payment method"
+        ],
+        "estimatedTime": "5-10 minutes",
+        "cost": "Varies by destination"
+      },
+      {
+        "name": "Luggage Storage",
+        "description": "Safe storage for your luggage",
+        "requirements": [
+          "Luggage receipt",
+          "ID proof"
+        ],
+        "estimatedTime": "2-5 minutes",
+        "cost": "₹50 per hour"
+      }
+    ],
+    "facilities": [
+      "Waiting Room",
+      "Food Court",
+      "ATM",
+      "First Aid",
+      "Wheelchair Access"
+    ],
+    "importantNotes": "Please arrive 30 minutes before departure. Keep your ID proof handy.",
+    "id": "455da53d-5940-4bca-b8f2-dfb81b3b022a"
+  },
+  {
+    "type": "RAILWAY_STATION",
+    "name": "Yeshwanthpur junction",
+    "address": "no120 Railway Road, City Center,yeshwanthpur ",
+    "operatingHours": "24/7",
+    "contactNumbers": [
+      "+91 1234567890",
+      "+91 808 5554422"
+    ],
+    "description": "Main railway station serving intercity and local trains. This is Servers are Started Newly to have good user Experience.",
+    "services": [
+      {
+        "name": "Ticket Booking",
+        "description": "Book tickets for any destination",
+        "requirements": [
+          "Valid ID proof",
+          "Payment method"
+        ],
+        "estimatedTime": "5-10 minutes",
+        "cost": "Varies by destination"
+      },
+      {
+        "name": "Luggage Storage",
+        "description": "Safe storage for your luggage",
+        "requirements": [
+          "Luggage receipt",
+          "ID proof"
+        ],
+        "estimatedTime": "2-5 minutes",
+        "cost": "₹50 per hour"
+      }
+    ],
+    "facilities": [
+      "Waiting Room",
+      "Food Court",
+      "ATM",
+      "First Aid",
+      "Wheelchair Access"
+    ],
+    "importantNotes": "Please arrive 30 minutes before departure. Keep your ID proof handy.",
+    "id": "527f995a-b4c6-400f-be98-2e98a9f2913f"
+  }
+]
